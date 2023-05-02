@@ -23,7 +23,7 @@ from ads import views
 urlpatterns = [
     path('', views.index),
     path('admin/', admin.site.urls),
-    path('cat/', include('ads.urls')),
+    path('', include('ads.urls')),
 ]
 
 if settings.DEBUG:
