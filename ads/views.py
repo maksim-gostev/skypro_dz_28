@@ -220,4 +220,26 @@ class AdDeleteView(DeleteView):
         return JsonResponse({"status": "ok"}, status=200)
 
 @method_decorator(csrf_exempt, name='dispatch')
-class
+class AdImageView(UpdateView):
+    model = Ad
+
+    fields = ['name', 'author_id', 'price', 'description', 'is_published', 'image', 'category_id']
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+
+        self.object.image = request.FILES["image"]
+
+        self.object.save()
+
+        return JsonResponse({
+            "id": self.object.id,
+            'name': self.object.name,
+            'author_id': self.object.author_id.username,
+            'author': self.object.author_id.id,
+            'price': self.object.price,
+            'description': self.object.description,
+            'is_published': self.object.is_published,
+            'image': self.object.image.url if self.object.image else None,
+            'category_id': self.object.category_id.id
+        }, status=200)
