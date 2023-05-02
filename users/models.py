@@ -28,7 +28,7 @@ class User(models.Model):
     password = models.CharField(max_length=20)
     role = models.CharField(max_length=20, choices=ROLE, default="member")
     age = models.PositiveIntegerField()
-    location_id = models.ManyToManyField(Location, on_delete=models.CASCADE, null=True)
+    location_id = models.ForeignKey(Location,  on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.username
@@ -36,3 +36,4 @@ class User(models.Model):
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
+        ordering = ["username"]
