@@ -1,12 +1,13 @@
 import json
 
+from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
-from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, CreateView, UpdateView, DeleteView
 
 from ads.models import Category, Ad
+from skypro_dz28 import settings
 from users.models import User
 
 
@@ -97,11 +98,17 @@ class AdListView(ListView):
 
     def get(self, request, *args, **kwargs):
         super().get(request, *args, **kwargs)
-        self.object_list = self.object_list.select_related('author_id').order_by('-price')
 
-        response = []
-        for ad in self.object_list:
-            response.append({
+        self.object_list = self.object_list.select_related('author_id').select_related('category_id').order_by( '-price')
+
+        paginator = Paginator(self.object_list, settings.TOTOL_ON_PAGE)
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+
+
+        ads = []
+        for ad in page_obj:
+            ads.append({
                 "id": ad.id,
                 'name': ad.name,
                 'author_id': ad.author_id.username,
@@ -111,6 +118,12 @@ class AdListView(ListView):
                 'image': ad.image.url if ad.image else None,
                 'category_id': ad.category_id.name,
             })
+
+        response ={
+            "items": ads,
+            "num_pages": paginator.num_pages,
+            "total": paginator.count
+        }
 
         return JsonResponse(response, safe=False)
 
@@ -177,7 +190,7 @@ class AdUpdateView(UpdateView):
     model = Ad
     fields = ['name', 'author_id', 'price', 'description', 'is_published', 'image', 'category_id']
 
-    def patch(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         super().post(request, *args, **kwargs)
 
         ad_data = json.loads(request.body)
